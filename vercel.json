@@ -1,0 +1,50 @@
+{
+  "functions": {
+    "api/*.js": { "maxDuration": 30 }
+  }
+}
+```
+
+**Vercel 환경변수 설정** (Vercel 대시보드 → Settings → Environment Variables):
+- `ANTHROPIC_API_KEY` = `sk-ant-...`
+- `IG_ACCESS_TOKEN` = Instagram 토큰 (나중에 추가)
+- `IG_ACCOUNT_ID` = Instagram 계정 ID
+
+---
+
+## Make.com 시나리오 구성
+
+**시나리오 1 — 매일 아침 크롤링 + AI 생성 (09:00)**
+```
+[1] Schedule → 매일 09:00
+  ↓
+[2] HTTP Request (POST)
+    URL: https://your-project.vercel.app/api/crawl
+    Method: POST
+  ↓
+[3] HTTP Request (POST) × 크롤링 결과 수만큼 반복
+    URL: https://your-project.vercel.app/api/generate
+    Body: { "prompt": "{{item.title}} 주제로 카드뉴스 생성..." }
+  ↓
+[4] Airtable or Google Sheets — 생성 결과 저장
+    (대시보드에서 검토할 수 있게 DB 역할)
+```
+
+**시나리오 2 — 매일 12시 자동 발행**
+```
+[1] Schedule → 매일 12:00
+  ↓
+[2] Airtable / Sheets — 오늘 날짜 + "발행 준비" 상태 행 조회
+  ↓
+[3] HTTP Request (POST)
+    URL: https://your-project.vercel.app/api/publish
+    Body: {
+      "imageUrl": "{{item.image_url}}",
+      "caption": "{{item.caption}}",
+      "igAccountId": "{{YOUR_IG_ID}}",
+      "accessToken": "{{YOUR_TOKEN}}"
+    }
+  ↓
+[4] Airtable / Sheets — 해당 행 상태를 "발행 완료"로 업데이트
+  ↓
+[5] (선택) Gmail or Slack — 발행 결과 알림
