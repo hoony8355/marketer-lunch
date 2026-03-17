@@ -1,0 +1,9 @@
+{
+  "name": "marketer-lunch",
+  "version": "1.0.0",
+  "description": "마케터의 점심 — 광고 공지 자동 카드뉴스 Instagram 발행",
+  "private": true,
+  "dependencies": {
+    "@vercel/og": "^0.6.0"
+  }
+}
