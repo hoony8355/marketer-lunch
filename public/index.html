@@ -1368,10 +1368,25 @@ async function generateCard(mode, forceTopic, forceSource) {
         body: JSON.stringify({ prompt })
       });
 
-      if (!response.ok) throw new Error(`서버 오류 ${response.status}`);
-      const data = await response.json();
-      const text = (data.content || []).map(b => b.text || '').join('').replace(/```json|```/g, '').trim();
-      const parsed = JSON.parse(text);
+      // 응답 텍스트 먼저 받기 (JSON 파싱 실패 방지)
+      const rawText = await response.text();
+      let data;
+      try { data = JSON.parse(rawText); }
+      catch (e) { throw new Error('응답 파싱 실패: ' + rawText.slice(0, 100)); }
+
+      if (!response.ok) throw new Error(data.error || '서버 오류 ' + response.status);
+      if (data.error) throw new Error(data.error);
+
+      // parsed 필드 있으면 바로 사용, 없으면 content에서 추출
+      let parsed;
+      if (data.parsed) {
+        parsed = data.parsed;
+      } else {
+        const text = (data.content || []).map(b => b.text || '').join('')
+          .replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+        if (!text) throw new Error('응답 내용이 비어있습니다.');
+        parsed = JSON.parse(text);
+      }
       currentCard = parsed;
 
       fillEl.style.width = '100%';
