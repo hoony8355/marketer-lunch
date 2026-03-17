@@ -1,0 +1,1595 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>마케터의 점심 — 대시보드</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Pretendard:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── 리셋 & 변수 ──────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --navy:    #0F172A;
+  --navy2:   #1E293B;
+  --navy3:   #334155;
+  --navy4:   #475569;
+  --orange:  #FF6B00;
+  --orange2: #FF8C38;
+  --sky:     #38BDF8;
+  --light:   #F1F5F9;
+  --muted:   #64748B;
+  --white:   #FFFFFF;
+
+  --font-display: 'Syne', sans-serif;
+  --font-body:    'Pretendard', 'Apple SD Gothic Neo', sans-serif;
+
+  --sidebar-w: 220px;
+  --topbar-h:  60px;
+  --radius:    12px;
+  --radius-sm: 8px;
+}
+
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: var(--font-body);
+  background: var(--navy);
+  color: var(--light);
+  display: flex;
+}
+
+/* ── 스크롤바 ────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--navy3); border-radius: 2px; }
+
+/* ── 사이드바 ────────────────────────────────────────────── */
+.sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  height: 100vh;
+  background: var(--navy2);
+  border-right: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  position: relative;
+  z-index: 10;
+}
+
+.logo {
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.logo-mark {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.logo-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--orange);
+  box-shadow: 0 0 8px var(--orange);
+}
+.logo-name {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--white);
+  letter-spacing: -0.02em;
+}
+.logo-sub {
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding-left: 16px;
+}
+
+.nav { padding: 16px 0; flex: 1; }
+.nav-section {
+  font-size: 9px;
+  color: var(--navy4);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 12px 20px 6px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: all 0.15s;
+  user-select: none;
+}
+.nav-item:hover { color: var(--light); background: rgba(255,255,255,0.04); }
+.nav-item.active {
+  color: var(--white);
+  background: rgba(255,107,0,0.1);
+  border-left-color: var(--orange);
+}
+.nav-item .nav-ic { font-size: 14px; width: 18px; text-align: center; opacity: 0.8; }
+
+.sidebar-footer {
+  padding: 16px 20px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  font-size: 11px;
+  color: var(--navy4);
+}
+.next-publish {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pulse {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--sky);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+/* ── 메인 영역 ───────────────────────────────────────────── */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.topbar {
+  height: var(--topbar-h);
+  min-height: var(--topbar-h);
+  background: var(--navy2);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+}
+.topbar-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--white);
+}
+.topbar-right { display: flex; gap: 10px; align-items: center; }
+
+/* ── 버튼 ────────────────────────────────────────────────── */
+.btn {
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255,255,255,0.12);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  background: transparent;
+  color: var(--light);
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.btn:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.2); }
+.btn-orange {
+  background: var(--orange);
+  border-color: var(--orange);
+  color: #fff;
+  font-weight: 600;
+}
+.btn-orange:hover { background: var(--orange2); border-color: var(--orange2); }
+.btn-sky {
+  background: transparent;
+  border-color: var(--sky);
+  color: var(--sky);
+}
+.btn-sky:hover { background: rgba(56,189,248,0.1); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── 콘텐츠 ─────────────────────────────────────────────── */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 28px;
+}
+
+/* ── 페이지 ─────────────────────────────────────────────── */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── 통계 카드 ───────────────────────────────────────────── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: var(--navy2);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+}
+.stat-label { font-size: 11px; color: var(--muted); margin-bottom: 8px; letter-spacing: 0.04em; }
+.stat-val {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--white);
+}
+.stat-sub { font-size: 11px; color: var(--muted); margin-top: 5px; }
+.stat-sub .up { color: var(--sky); }
+.stat-sub .on { color: var(--orange); }
+
+/* ── 카드 ────────────────────────────────────────────────── */
+.card {
+  background: var(--navy2);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+}
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.card-title {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--white);
+  letter-spacing: -0.01em;
+}
+
+/* ── 2컬럼 그리드 ────────────────────────────────────────── */
+.two-col { display: grid; grid-template-columns: 1fr 320px; gap: 16px; margin-bottom: 16px; }
+.three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+
+/* ── 피드 아이템 ─────────────────────────────────────────── */
+.feed-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.feed-item:last-child { border-bottom: none; padding-bottom: 0; }
+.feed-item:hover { opacity: 0.8; }
+.feed-icon {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700;
+}
+.feed-info { flex: 1; min-width: 0; }
+.feed-source { font-size: 10px; color: var(--muted); margin-bottom: 3px; }
+.feed-title { font-size: 13px; color: var(--light); line-height: 1.5; font-weight: 500; }
+.feed-time { font-size: 10px; color: var(--navy4); margin-top: 4px; }
+.badge {
+  font-size: 9px; padding: 2px 7px;
+  border-radius: 20px; font-weight: 600;
+  flex-shrink: 0; letter-spacing: 0.06em;
+}
+.badge-new { background: rgba(255,107,0,0.15); color: var(--orange); }
+.badge-hot { background: rgba(56,189,248,0.15); color: var(--sky); }
+
+/* ── 카드뉴스 미리보기 ───────────────────────────────────── */
+.card-preview {
+  background: var(--navy);
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.preview-slide {
+  aspect-ratio: 1/1;
+  background: var(--navy);
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.preview-brand {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 10px; color: var(--muted); letter-spacing: 0.06em;
+}
+.preview-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--orange); }
+.preview-label {
+  display: inline-block;
+  background: var(--orange);
+  color: #fff;
+  font-size: 9px; font-weight: 700;
+  padding: 4px 10px; border-radius: 4px;
+  letter-spacing: 0.08em; margin-bottom: 10px;
+}
+.preview-headline {
+  font-family: var(--font-display);
+  font-size: 20px; font-weight: 700;
+  color: var(--white); line-height: 1.4;
+  margin-bottom: 10px;
+}
+.preview-body { font-size: 11px; color: rgba(255,255,255,0.5); line-height: 1.7; }
+.preview-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.preview-num { font-size: 10px; color: var(--muted); }
+.preview-accent { width: 20px; height: 2px; border-radius: 1px; background: var(--sky); }
+.slide-dots {
+  display: flex; gap: 4px;
+  padding: 10px 28px; justify-content: center;
+}
+.sdot { width: 20px; height: 2px; border-radius: 1px; background: rgba(255,255,255,0.15); }
+.sdot.active { background: var(--orange); }
+
+/* ── 큐 아이템 ───────────────────────────────────────────── */
+.queue-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 16px;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px; cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.queue-item:last-child { margin-bottom: 0; }
+.queue-item:hover { border-color: rgba(255,107,0,0.3); background: rgba(255,107,0,0.03); }
+.queue-thumb {
+  width: 44px; height: 44px;
+  border-radius: 8px; background: var(--navy);
+  flex-shrink: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 3px; padding: 8px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.qt-bar { height: 2px; border-radius: 1px; background: var(--orange); }
+.queue-info { flex: 1; min-width: 0; }
+.queue-date { font-size: 10px; color: var(--muted); margin-bottom: 3px; }
+.queue-name {
+  font-size: 13px; font-weight: 500; color: var(--light);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.queue-tags { display: flex; gap: 4px; margin-top: 5px; flex-wrap: wrap; }
+.tag {
+  font-size: 10px; padding: 2px 8px;
+  border-radius: 20px; font-weight: 500;
+}
+.tag-orange { background: rgba(255,107,0,0.15); color: var(--orange); }
+.tag-sky    { background: rgba(56,189,248,0.15); color: var(--sky); }
+.tag-gray   { background: rgba(255,255,255,0.07); color: var(--muted); }
+.status-pill {
+  font-size: 10px; padding: 3px 10px;
+  border-radius: 20px; font-weight: 600;
+  flex-shrink: 0; letter-spacing: 0.04em;
+}
+.sp-ready    { background: rgba(52,211,153,0.15); color: #34D399; }
+.sp-draft    { background: rgba(255,255,255,0.07); color: var(--muted); }
+.sp-ai       { background: rgba(56,189,248,0.15); color: var(--sky); }
+.sp-published{ background: rgba(52,211,153,0.1); color: #34D399; }
+
+/* ── 생성 탭 ─────────────────────────────────────────────── */
+.tab-bar {
+  display: flex; gap: 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  margin-bottom: 20px;
+}
+.tab {
+  font-size: 13px; padding: 8px 18px;
+  cursor: pointer; color: var(--muted);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px; transition: all 0.15s;
+}
+.tab:hover { color: var(--light); }
+.tab.active { color: var(--orange); border-bottom-color: var(--orange); }
+
+/* ── 폼 요소 ─────────────────────────────────────────────── */
+.field-label {
+  font-size: 11px; color: var(--muted);
+  margin-bottom: 6px; display: block;
+}
+.field-input {
+  width: 100%;
+  background: var(--navy);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  font-family: var(--font-body);
+  font-size: 13px; color: var(--light);
+  outline: none; transition: border-color 0.15s;
+}
+.field-input:focus { border-color: var(--orange); }
+.field-textarea {
+  width: 100%; resize: vertical; min-height: 90px;
+  background: var(--navy);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  font-family: var(--font-body);
+  font-size: 13px; color: var(--light);
+  outline: none; transition: border-color 0.15s; line-height: 1.6;
+}
+.field-textarea:focus { border-color: var(--orange); }
+
+/* ── 칩 ──────────────────────────────────────────────────── */
+.chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  font-size: 11px; padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.12);
+  cursor: pointer; color: var(--muted);
+  background: transparent; transition: all 0.15s;
+}
+.chip:hover { border-color: rgba(255,255,255,0.25); color: var(--light); }
+.chip.on { border-color: var(--orange); color: var(--orange); background: rgba(255,107,0,0.1); }
+
+/* ── 로딩 바 ─────────────────────────────────────────────── */
+.loading-bar {
+  height: 2px; background: rgba(255,255,255,0.07);
+  border-radius: 1px; overflow: hidden; margin-top: 4px;
+}
+.loading-fill {
+  height: 100%; width: 0%;
+  background: var(--orange); border-radius: 1px;
+  transition: width 0.3s ease;
+}
+
+/* ── 생성 결과 카드 ──────────────────────────────────────── */
+.result-card {
+  background: var(--navy);
+  border: 1px solid rgba(56,189,248,0.2);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-top: 14px;
+}
+.result-source-tag {
+  font-size: 9px; color: var(--sky);
+  letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px;
+}
+.result-title {
+  font-family: var(--font-display);
+  font-size: 14px; font-weight: 600;
+  color: var(--white); margin-bottom: 10px; line-height: 1.4;
+}
+.result-slide {
+  background: rgba(255,255,255,0.04);
+  border-radius: 8px; padding: 10px 12px; margin-bottom: 6px;
+}
+.result-slide-num { font-size: 9px; color: var(--orange); margin-bottom: 3px; letter-spacing: 0.08em; }
+.result-slide-text { font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.6; }
+.result-caption {
+  background: rgba(56,189,248,0.08);
+  border-radius: 8px; padding: 10px 12px;
+  font-size: 11px; color: rgba(255,255,255,0.5); line-height: 1.7; margin-top: 8px;
+}
+
+/* ── 스켈레톤 ────────────────────────────────────────────── */
+.skeleton-line {
+  height: 12px; border-radius: 6px;
+  background: rgba(255,255,255,0.06);
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+@keyframes shimmer { 0%,100%{opacity:0.5;} 50%{opacity:1;} }
+
+/* ── 에디터 레이아웃 ─────────────────────────────────────── */
+.editor-layout {
+  display: grid;
+  grid-template-columns: 100px 1fr 260px;
+  gap: 14px;
+  height: calc(100vh - var(--topbar-h) - 48px);
+  min-height: 480px;
+}
+.slide-strip { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
+.slide-thumb {
+  aspect-ratio: 1/1; border-radius: 8px;
+  background: var(--navy); cursor: pointer;
+  border: 1.5px solid transparent;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 4px; padding: 10px; transition: border-color 0.15s;
+}
+.slide-thumb:hover { border-color: rgba(255,255,255,0.15); }
+.slide-thumb.active { border-color: var(--orange); }
+.st-bar  { height: 2px; border-radius: 1px; background: var(--orange); width: 65%; }
+.st-bar2 { height: 2px; border-radius: 1px; background: rgba(255,255,255,0.18); width: 80%; }
+.st-label { font-size: 9px; color: var(--muted); margin-top: 2px; }
+.slide-add {
+  aspect-ratio: 1/1; border-radius: 8px;
+  border: 1px dashed rgba(255,255,255,0.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; color: var(--muted); cursor: pointer; transition: all 0.15s;
+}
+.slide-add:hover { border-color: var(--orange); color: var(--orange); }
+
+.editor-canvas {
+  background: rgba(255,255,255,0.03);
+  border-radius: var(--radius);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px; overflow: hidden;
+}
+.canvas-inner { width: 100%; max-width: 320px; }
+.editor-panel {
+  background: var(--navy2);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: var(--radius);
+  padding: 18px; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.color-row { display: flex; gap: 8px; }
+.color-dot {
+  width: 24px; height: 24px; border-radius: 50%;
+  cursor: pointer; border: 2px solid transparent; transition: border-color 0.15s;
+}
+.color-dot.active { border-color: var(--white); }
+
+/* ── 설정 ────────────────────────────────────────────────── */
+.settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.toggle-wrap {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--navy);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: var(--radius-sm);
+}
+.toggle-info .toggle-name { font-size: 13px; color: var(--light); font-weight: 500; }
+.toggle-info .toggle-url  { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.toggle-track {
+  position: relative; width: 34px; height: 20px;
+  background: var(--navy3); border-radius: 10px;
+  cursor: pointer; transition: background 0.2s; flex-shrink: 0;
+}
+.toggle-track.on { background: var(--orange); }
+.toggle-knob {
+  position: absolute; top: 3px; left: 3px;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: #fff; transition: transform 0.2s;
+}
+.toggle-track.on .toggle-knob { transform: translateX(14px); }
+
+.code-block {
+  background: var(--navy);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 11px; color: var(--sky); line-height: 1.6;
+  overflow-x: auto; white-space: nowrap;
+}
+
+/* ── 토스트 알림 ──────────────────────────────────────────── */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--navy2);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-left: 3px solid var(--orange);
+  border-radius: var(--radius-sm);
+  padding: 12px 18px;
+  font-size: 13px; color: var(--light);
+  z-index: 9999; pointer-events: none;
+  opacity: 0; transform: translateY(8px);
+  transition: all 0.25s;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+/* ── 분석 ─────────────────────────────────────────────────── */
+.bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.bar-label { font-size: 11px; color: var(--muted); width: 65px; flex-shrink: 0; }
+.bar-track { flex: 1; height: 6px; background: rgba(255,255,255,0.07); border-radius: 3px; }
+.bar-fill  { height: 6px; border-radius: 3px; background: var(--orange); }
+.bar-val   { font-size: 11px; color: var(--muted); width: 36px; text-align: right; }
+</style>
+</head>
+<body>
+
+<!-- ── 사이드바 ─────────────────────────────────────────── -->
+<nav class="sidebar">
+  <div class="logo">
+    <div class="logo-mark">
+      <div class="logo-dot"></div>
+      <span class="logo-name">마케터의 점심</span>
+    </div>
+    <div class="logo-sub">Ad Intelligence</div>
+  </div>
+
+  <div class="nav">
+    <div class="nav-section">콘텐츠</div>
+    <div class="nav-item active" data-page="home">
+      <span class="nav-ic">▦</span> 대시보드
+    </div>
+    <div class="nav-item" data-page="crawl">
+      <span class="nav-ic">⟳</span> 크롤링 피드
+    </div>
+    <div class="nav-item" data-page="create">
+      <span class="nav-ic">✦</span> 카드뉴스 생성
+    </div>
+    <div class="nav-item" data-page="editor">
+      <span class="nav-ic">✎</span> 에디터
+    </div>
+
+    <div class="nav-section">발행</div>
+    <div class="nav-item" data-page="queue">
+      <span class="nav-ic">◷</span> 발행 큐
+    </div>
+    <div class="nav-item" data-page="analytics">
+      <span class="nav-ic">↗</span> 성과 분석
+    </div>
+
+    <div class="nav-section">시스템</div>
+    <div class="nav-item" data-page="settings">
+      <span class="nav-ic">⚙</span> 연동 설정
+    </div>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="next-publish">
+      <div class="pulse"></div>
+      <span>다음 발행 — 오늘 12:00</span>
+    </div>
+  </div>
+</nav>
+
+<!-- ── 메인 ─────────────────────────────────────────────── -->
+<div class="main">
+  <header class="topbar">
+    <span class="topbar-title" id="page-title">대시보드</span>
+    <div class="topbar-right">
+      <div style="font-size:12px;color:var(--muted);" id="crawl-status">
+        마지막 크롤링 — 오늘 09:00
+      </div>
+      <button class="btn btn-orange" onclick="nav('create')">+ 새 카드뉴스</button>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- 대시보드 -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <div class="page active" id="page-home">
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">이번달 발행</div>
+          <div class="stat-val" id="stat-published">—</div>
+          <div class="stat-sub"><span class="on">●</span> 전월 대비 확인 중</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">예약 대기</div>
+          <div class="stat-val" id="stat-queued">—</div>
+          <div class="stat-sub"><span class="up">●</span> 발행 준비됨</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">수집된 공지</div>
+          <div class="stat-val" id="stat-crawled">—</div>
+          <div class="stat-sub"><span class="up">●</span> 오늘 크롤링</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">AI 자동생성</div>
+          <div class="stat-val" id="stat-ai">—</div>
+          <div class="stat-sub"><span class="on">●</span> 총 생성 건수</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">오늘 수집된 업데이트</span>
+            <span style="font-size:10px;color:var(--sky);display:flex;align-items:center;gap:5px;">
+              <span class="pulse" style="background:var(--sky);width:5px;height:5px;"></span>실시간
+            </span>
+          </div>
+          <div id="home-feed">
+            <div class="feed-item"><div class="skeleton-line" style="width:80%;height:14px;"></div></div>
+            <div class="feed-item"><div class="skeleton-line" style="width:65%;height:14px;"></div></div>
+            <div class="feed-item"><div class="skeleton-line" style="width:72%;height:14px;"></div></div>
+          </div>
+          <button class="btn" style="width:100%;margin-top:14px;font-size:12px;" onclick="nav('crawl')">전체 피드 보기</button>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">다음 발행 미리보기</span>
+          </div>
+          <div class="card-preview">
+            <div class="preview-slide" id="home-preview">
+              <div class="preview-brand">
+                <div class="preview-dot"></div>
+                <span>마케터의 점심</span>
+              </div>
+              <div>
+                <div class="preview-label" id="prev-label">AD UPDATE</div>
+                <div class="preview-headline" id="prev-headline">다음 발행될<br>카드뉴스 제목</div>
+                <div class="preview-body" id="prev-body">발행 큐에 예약된 카드뉴스가 여기 미리 표시됩니다.</div>
+              </div>
+              <div class="preview-footer">
+                <span class="preview-num" id="prev-num">01 / 05</span>
+                <div class="preview-accent"></div>
+              </div>
+            </div>
+            <div class="slide-dots" id="prev-dots">
+              <div class="sdot active"></div>
+              <div class="sdot"></div><div class="sdot"></div>
+              <div class="sdot"></div><div class="sdot"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 큐 현황 3칸 -->
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">발행 큐 현황</span>
+          <button class="btn" style="font-size:11px;" onclick="nav('queue')">전체 보기</button>
+        </div>
+        <div class="three-col" id="home-queue">
+          <div style="padding:14px;background:var(--navy);border-radius:var(--radius-sm);border:1px solid rgba(255,255,255,0.06);">
+            <div class="skeleton-line" style="width:50%;margin-bottom:8px;"></div>
+            <div class="skeleton-line" style="width:90%;height:14px;margin-bottom:8px;"></div>
+            <div class="skeleton-line" style="width:35%;height:10px;"></div>
+          </div>
+          <div style="padding:14px;background:var(--navy);border-radius:var(--radius-sm);border:1px solid rgba(255,255,255,0.06);">
+            <div class="skeleton-line" style="width:50%;margin-bottom:8px;"></div>
+            <div class="skeleton-line" style="width:85%;height:14px;margin-bottom:8px;"></div>
+            <div class="skeleton-line" style="width:35%;height:10px;"></div>
+          </div>
+          <div style="padding:14px;background:var(--navy);border-radius:var(--radius-sm);border:1px solid rgba(255,255,255,0.06);">
+            <div class="skeleton-line" style="width:50%;margin-bottom:8px;"></div>
+            <div class="skeleton-line" style="width:78%;height:14px;margin-bottom:8px;"></div>
+            <div class="skeleton-line" style="width:35%;height:10px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- 크롤링 피드 -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <div class="page" id="page-crawl">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">네이버 광고</span>
+            <span class="badge badge-hot">매일 09:00</span>
+          </div>
+          <div class="feed-item">
+            <div class="feed-info">
+              <div class="feed-source">2025.03.17</div>
+              <div class="feed-title">성과형 디스플레이 광고 노출 지면 확대 안내</div>
+            </div>
+            <button class="btn btn-orange" style="font-size:10px;padding:5px 10px;flex-shrink:0;"
+              onclick="genFromFeed('네이버 성과형 디스플레이 광고 노출 지면 확대 안내','naver')">생성</button>
+          </div>
+          <div class="feed-item">
+            <div class="feed-info">
+              <div class="feed-source">2025.03.15</div>
+              <div class="feed-title">검색광고 입찰가 최적화 기능 업데이트</div>
+            </div>
+            <button class="btn" style="font-size:10px;padding:5px 10px;flex-shrink:0;"
+              onclick="genFromFeed('검색광고 입찰가 최적화 기능 업데이트','naver')">생성</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">Meta (Facebook·Instagram)</span>
+            <span class="badge badge-new">NEW</span>
+          </div>
+          <div class="feed-item">
+            <div class="feed-info">
+              <div class="feed-source">2025.03.16</div>
+              <div class="feed-title">Advantage+ 쇼핑 캠페인 동영상 자동 테스트 출시</div>
+            </div>
+            <button class="btn btn-orange" style="font-size:10px;padding:5px 10px;flex-shrink:0;"
+              onclick="genFromFeed('Advantage+ 쇼핑 캠페인 동영상 자동 테스트 출시','meta')">생성</button>
+          </div>
+          <div class="feed-item">
+            <div class="feed-info">
+              <div class="feed-source">2025.03.14</div>
+              <div class="feed-title">광고 계정 품질 점수 새 지표 2가지 추가</div>
+            </div>
+            <button class="btn" style="font-size:10px;padding:5px 10px;flex-shrink:0;"
+              onclick="genFromFeed('광고 계정 품질 점수 새 지표 2가지 추가','meta')">생성</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">Google Ads</span>
+            <span class="badge badge-hot">HOT</span>
+          </div>
+          <div class="feed-item">
+            <div class="feed-info">
+              <div class="feed-source">2025.03.17</div>
+              <div class="feed-title">PMax 캠페인 검색 주제 타겟팅 한국 정식 출시</div>
+            </div>
+            <button class="btn btn-orange" style="font-size:10px;padding:5px 10px;flex-shrink:0;"
+              onclick="genFromFeed('PMax 캠페인 검색 주제 타겟팅 한국 정식 출시','google')">생성</button>
+          </div>
+          <div class="feed-item">
+            <div class="feed-info">
+              <div class="feed-source">2025.03.13</div>
+              <div class="feed-title">Performance Planner 예측 모델 정확도 개선</div>
+            </div>
+            <button class="btn" style="font-size:10px;padding:5px 10px;flex-shrink:0;"
+              onclick="genFromFeed('Performance Planner 예측 모델 정확도 개선','google')">생성</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">TikTok for Business / 카카오</span>
+          </div>
+          <div class="feed-item">
+            <div class="feed-info">
+              <div class="feed-source">TikTok · 2025.03.15</div>
+              <div class="feed-title">TikTok Shop 광고 ROAS 측정 방식 업데이트</div>
+            </div>
+            <button class="btn" style="font-size:10px;padding:5px 10px;flex-shrink:0;"
+              onclick="genFromFeed('TikTok Shop 광고 ROAS 측정 방식 업데이트','tiktok')">생성</button>
+          </div>
+          <div class="feed-item">
+            <div class="feed-info">
+              <div class="feed-source">카카오 · 2025.03.14</div>
+              <div class="feed-title">카카오모먼트 리타겟팅 오디언스 세그먼트 확장</div>
+            </div>
+            <button class="btn" style="font-size:10px;padding:5px 10px;flex-shrink:0;"
+              onclick="genFromFeed('카카오모먼트 리타겟팅 오디언스 세그먼트 확장','kakao')">생성</button>
+          </div>
+        </div>
+
+      </div>
+      <div id="crawl-gen-result"></div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- 카드뉴스 생성 -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <div class="page" id="page-create">
+      <div style="display:grid;grid-template-columns:1fr 300px;gap:16px;">
+
+        <div class="card">
+          <div class="tab-bar">
+            <div class="tab active" onclick="switchTab(this,'tab-crawl-based')">크롤링 기반 생성</div>
+            <div class="tab" onclick="switchTab(this,'tab-free-idea')">자유 아이디어</div>
+            <div class="tab" onclick="switchTab(this,'tab-digest')">멀티 매체 다이제스트</div>
+          </div>
+
+          <!-- 크롤링 기반 -->
+          <div id="tab-crawl-based">
+            <div style="margin-bottom:14px;">
+              <label class="field-label">수집된 공지 / 업데이트 선택</label>
+              <div id="crawl-pick-list" style="border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius-sm);overflow:hidden;">
+                <div class="feed-item" style="padding:10px 14px;background:rgba(255,107,0,0.06);border-left:3px solid var(--orange);cursor:pointer;" onclick="selectCrawlItem(this)">
+                  <div class="feed-info"><div class="feed-source">네이버 · 오늘</div><div class="feed-title" style="font-size:12px;">성과형 디스플레이 광고 노출 지면 확대 안내</div></div>
+                  <div style="width:14px;height:14px;border-radius:50%;background:var(--orange);flex-shrink:0;"></div>
+                </div>
+                <div class="feed-item" style="padding:10px 14px;cursor:pointer;" onclick="selectCrawlItem(this)">
+                  <div class="feed-info"><div class="feed-source">Meta · 어제</div><div class="feed-title" style="font-size:12px;">Advantage+ 동영상 자동 테스트 기능 출시</div></div>
+                  <div style="width:14px;height:14px;border-radius:50%;border:1px solid rgba(255,255,255,0.2);flex-shrink:0;"></div>
+                </div>
+                <div class="feed-item" style="padding:10px 14px;cursor:pointer;" onclick="selectCrawlItem(this)">
+                  <div class="feed-info"><div class="feed-source">Google · 오늘</div><div class="feed-title" style="font-size:12px;">PMax 검색 주제 타겟팅 한국 정식 출시</div></div>
+                  <div style="width:14px;height:14px;border-radius:50%;border:1px solid rgba(255,255,255,0.2);flex-shrink:0;"></div>
+                </div>
+              </div>
+            </div>
+            <div style="margin-bottom:14px;">
+              <label class="field-label">카드뉴스 스타일</label>
+              <div class="chip-row" id="style-chips">
+                <span class="chip on" onclick="toggleChip(this)">기능 정리</span>
+                <span class="chip" onclick="toggleChip(this)">실무 팁</span>
+                <span class="chip" onclick="toggleChip(this)">비교 분석</span>
+                <span class="chip" onclick="toggleChip(this)">트렌드 해설</span>
+              </div>
+            </div>
+            <div style="margin-bottom:14px;">
+              <label class="field-label">추가 지시사항 (선택)</label>
+              <textarea class="field-textarea" id="crawl-extra" placeholder="예: 실무 마케터가 당장 써먹을 수 있는 팁 위주로 작성해줘"></textarea>
+            </div>
+            <button class="btn btn-orange" style="width:100%;" id="btn-gen-crawl" onclick="generateCard('crawl')">
+              ✦ AI로 카드뉴스 생성
+            </button>
+            <div class="loading-bar"><div class="loading-fill" id="load-crawl"></div></div>
+            <div id="result-crawl"></div>
+          </div>
+
+          <!-- 자유 아이디어 -->
+          <div id="tab-free-idea" style="display:none;">
+            <div style="margin-bottom:14px;">
+              <label class="field-label">아이디어 / 영감 입력</label>
+              <textarea class="field-textarea" id="free-idea-prompt" rows="5"
+                placeholder="예: 요즘 브랜드들이 UGC 광고를 많이 쓰는데, 왜 효과적인지와 마케터가 당장 시도할 방법을 카드뉴스로 만들고 싶어"></textarea>
+            </div>
+            <div style="margin-bottom:14px;">
+              <label class="field-label">콘텐츠 유형</label>
+              <div class="chip-row">
+                <span class="chip on" onclick="toggleChip(this)">트렌드 해설</span>
+                <span class="chip" onclick="toggleChip(this)">광고 꿀팁</span>
+                <span class="chip" onclick="toggleChip(this)">사례 분석</span>
+                <span class="chip" onclick="toggleChip(this)">용어 정리</span>
+              </div>
+            </div>
+            <div style="margin-bottom:14px;">
+              <label class="field-label">슬라이드 장수</label>
+              <div class="chip-row">
+                <span class="chip" onclick="toggleChip(this)">5장</span>
+                <span class="chip on" onclick="toggleChip(this)">7장</span>
+                <span class="chip" onclick="toggleChip(this)">10장</span>
+              </div>
+            </div>
+            <button class="btn btn-orange" style="width:100%;" onclick="generateCard('free')">
+              ✦ AI로 카드뉴스 생성
+            </button>
+            <div class="loading-bar"><div class="loading-fill" id="load-free"></div></div>
+            <div id="result-free"></div>
+          </div>
+
+          <!-- 멀티 매체 다이제스트 -->
+          <div id="tab-digest" style="display:none;">
+            <div style="margin-bottom:14px;">
+              <label class="field-label">포함할 매체 선택</label>
+              <div class="chip-row" id="digest-chips">
+                <span class="chip on" onclick="toggleChip(this)">네이버</span>
+                <span class="chip on" onclick="toggleChip(this)">Meta</span>
+                <span class="chip on" onclick="toggleChip(this)">Google</span>
+                <span class="chip" onclick="toggleChip(this)">TikTok</span>
+                <span class="chip" onclick="toggleChip(this)">카카오</span>
+                <span class="chip" onclick="toggleChip(this)">YouTube</span>
+              </div>
+            </div>
+            <div style="margin-bottom:14px;">
+              <label class="field-label">다이제스트 유형</label>
+              <div class="chip-row">
+                <span class="chip on" onclick="toggleChip(this)">주간 요약</span>
+                <span class="chip" onclick="toggleChip(this)">일간 뉴스</span>
+                <span class="chip" onclick="toggleChip(this)">월간 총정리</span>
+              </div>
+            </div>
+            <button class="btn btn-orange" style="width:100%;" onclick="generateCard('digest')">
+              ✦ 통합 다이제스트 생성
+            </button>
+            <div class="loading-bar"><div class="loading-fill" id="load-digest"></div></div>
+            <div id="result-digest"></div>
+          </div>
+        </div>
+
+        <!-- 사이드 미리보기 + 예약 -->
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div class="card">
+            <div class="card-title" style="margin-bottom:12px;">미리보기</div>
+            <div class="card-preview" id="create-preview">
+              <div class="preview-slide">
+                <div class="preview-brand"><div class="preview-dot"></div><span>마케터의 점심</span></div>
+                <div>
+                  <div class="preview-label" id="cp-label">AD UPDATE</div>
+                  <div class="preview-headline" id="cp-headline">제목이<br>여기 표시됩니다</div>
+                  <div class="preview-body" id="cp-body">생성 후 미리보기가 여기에 표시됩니다.</div>
+                </div>
+                <div class="preview-footer">
+                  <span class="preview-num" id="cp-num">01 / 05</span>
+                  <div class="preview-accent"></div>
+                </div>
+              </div>
+              <div class="slide-dots" id="cp-dots">
+                <div class="sdot active"></div>
+                <div class="sdot"></div><div class="sdot"></div>
+                <div class="sdot"></div><div class="sdot"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="padding:14px;">
+            <label class="field-label">발행 예약</label>
+            <div style="display:flex;gap:8px;margin-bottom:10px;">
+              <input type="date" class="field-input" id="sched-date" style="flex:1;">
+              <input type="time" class="field-input" value="12:00" id="sched-time" style="width:90px;">
+            </div>
+            <button class="btn btn-orange" style="width:100%;font-size:12px;" onclick="addToQueue()">
+              큐에 예약 추가
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- 에디터 -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <div class="page" id="page-editor">
+      <div class="editor-layout">
+
+        <!-- 슬라이드 스트립 -->
+        <div class="slide-strip">
+          <div class="slide-thumb active" onclick="selectThumb(this,1)">
+            <div class="st-bar"></div><div class="st-bar2"></div><div class="st-label">커버</div>
+          </div>
+          <div class="slide-thumb" onclick="selectThumb(this,2)">
+            <div class="st-bar2"></div><div class="st-bar2" style="width:50%"></div><div class="st-label">02</div>
+          </div>
+          <div class="slide-thumb" onclick="selectThumb(this,3)">
+            <div class="st-bar2"></div><div class="st-bar2" style="width:70%"></div><div class="st-label">03</div>
+          </div>
+          <div class="slide-thumb" onclick="selectThumb(this,4)">
+            <div class="st-bar2"></div><div class="st-bar2" style="width:45%"></div><div class="st-label">04</div>
+          </div>
+          <div class="slide-thumb" onclick="selectThumb(this,5)">
+            <div class="st-bar2"></div><div class="st-label">마무리</div>
+          </div>
+          <div class="slide-add" onclick="showToast('슬라이드가 추가되었습니다.')">+</div>
+        </div>
+
+        <!-- 캔버스 -->
+        <div class="editor-canvas">
+          <div class="canvas-inner">
+            <div class="card-preview">
+              <div class="preview-slide" id="ed-slide">
+                <div class="preview-brand"><div class="preview-dot"></div><span>마케터의 점심</span></div>
+                <div>
+                  <div class="preview-label" id="ed-label">META UPDATE</div>
+                  <div class="preview-headline" id="ed-headline">Advantage+에<br>동영상 자동 테스트<br>기능 추가됨</div>
+                  <div class="preview-body" id="ed-body">AI가 크리에이티브를 자동으로 조합하고 성과 좋은 소재를 선택합니다.</div>
+                </div>
+                <div class="preview-footer">
+                  <span class="preview-num">01 / 05</span>
+                  <div class="preview-accent"></div>
+                </div>
+              </div>
+              <div class="slide-dots">
+                <div class="sdot active"></div>
+                <div class="sdot"></div><div class="sdot"></div>
+                <div class="sdot"></div><div class="sdot"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 편집 패널 -->
+        <div class="editor-panel">
+          <div>
+            <label class="field-label">슬라이드 레이블</label>
+            <input class="field-input" value="META UPDATE"
+              oninput="document.getElementById('ed-label').textContent=this.value">
+          </div>
+          <div>
+            <label class="field-label">헤드라인</label>
+            <textarea class="field-textarea" rows="3"
+              oninput="document.getElementById('ed-headline').innerHTML=this.value.replace(/\n/g,'<br>')">Advantage+에
+동영상 자동 테스트
+기능 추가됨</textarea>
+          </div>
+          <div>
+            <label class="field-label">본문</label>
+            <textarea class="field-textarea" rows="4"
+              oninput="document.getElementById('ed-body').textContent=this.value">AI가 크리에이티브를 자동으로 조합하고 성과 좋은 소재를 선택합니다.</textarea>
+          </div>
+          <div>
+            <label class="field-label">배경색</label>
+            <div class="color-row">
+              <div class="color-dot active" style="background:#0F172A;" onclick="setSlideColor('#0F172A',this)"></div>
+              <div class="color-dot" style="background:#1e3a5f;" onclick="setSlideColor('#1e3a5f',this)"></div>
+              <div class="color-dot" style="background:#FF6B00;" onclick="setSlideColor('#FF6B00',this)"></div>
+              <div class="color-dot" style="background:#0c4a6e;" onclick="setSlideColor('#0c4a6e',this)"></div>
+              <div class="color-dot" style="background:#1a1a2e;" onclick="setSlideColor('#1a1a2e',this)"></div>
+            </div>
+          </div>
+          <div>
+            <label class="field-label">발행 날짜</label>
+            <input type="date" class="field-input">
+          </div>
+          <button class="btn btn-orange" style="width:100%;font-size:12px;" onclick="addToQueue()">
+            큐에 예약 추가
+          </button>
+          <button class="btn btn-sky" style="width:100%;font-size:12px;" onclick="publishNow()">
+            지금 바로 발행
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- 발행 큐 -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <div class="page" id="page-queue">
+      <div class="card" style="padding:0;overflow:hidden;">
+        <div style="padding:16px 22px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:space-between;">
+          <span class="card-title">예약된 카드뉴스</span>
+          <span style="font-size:11px;color:var(--muted);">매일 12:00 자동 발행</span>
+        </div>
+        <div style="padding:16px 22px;" id="queue-list">
+
+          <div class="queue-item">
+            <div class="queue-thumb"><div class="qt-bar" style="width:70%"></div><div class="qt-bar" style="width:45%;background:var(--sky);"></div></div>
+            <div class="queue-info">
+              <div class="queue-date">오늘 12:00</div>
+              <div class="queue-name">네이버 성과형 디스플레이 광고 노출 지면 확대</div>
+              <div class="queue-tags"><span class="tag tag-orange">네이버</span><span class="tag tag-gray">AI 생성</span></div>
+            </div>
+            <div class="status-pill sp-ready">발행 준비</div>
+          </div>
+
+          <div class="queue-item">
+            <div class="queue-thumb"><div class="qt-bar" style="width:80%"></div><div class="qt-bar" style="width:35%;background:var(--sky);"></div></div>
+            <div class="queue-info">
+              <div class="queue-date">내일 12:00</div>
+              <div class="queue-name">Google PMax 검색 주제 타겟팅 한국 정식 출시</div>
+              <div class="queue-tags"><span class="tag tag-sky">Google</span><span class="tag tag-gray">AI 생성</span></div>
+            </div>
+            <div class="status-pill sp-ready">발행 준비</div>
+          </div>
+
+          <div class="queue-item">
+            <div class="queue-thumb"><div class="qt-bar" style="width:55%"></div><div class="qt-bar" style="width:60%;background:var(--sky);"></div></div>
+            <div class="queue-info">
+              <div class="queue-date">3/19 (수) 12:00</div>
+              <div class="queue-name">UGC 광고가 잘 되는 이유 + 실전 적용 방법</div>
+              <div class="queue-tags"><span class="tag tag-gray">아이디어</span></div>
+            </div>
+            <div class="status-pill sp-draft">검토 필요</div>
+          </div>
+
+          <div class="queue-item">
+            <div class="queue-thumb"><div class="qt-bar" style="width:65%"></div><div class="qt-bar" style="width:50%;background:var(--sky);"></div></div>
+            <div class="queue-info">
+              <div class="queue-date">3/20 (목) 12:00</div>
+              <div class="queue-name">이번 주 광고계 주요 뉴스 다이제스트</div>
+              <div class="queue-tags"><span class="tag tag-orange">네이버</span><span class="tag tag-sky">Google</span><span class="tag tag-gray">Meta</span></div>
+            </div>
+            <div class="status-pill sp-ai">AI 검토 중</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- 성과 분석 -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <div class="page" id="page-analytics">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">총 노출</div><div class="stat-val">38,240</div><div class="stat-sub"><span class="up">↑</span> 이번달 누계</div></div>
+        <div class="stat-card"><div class="stat-label">평균 참여율</div><div class="stat-val">4.2%</div><div class="stat-sub"><span class="up">↑</span> 업계 평균 2배</div></div>
+        <div class="stat-card"><div class="stat-label">저장 수</div><div class="stat-val">891</div><div class="stat-sub"><span class="up">↑</span> +34% 증가</div></div>
+        <div class="stat-card"><div class="stat-label">팔로워</div><div class="stat-val">1,847</div><div class="stat-sub"><span class="on">+</span> 이번주 +91</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="card">
+          <div class="card-title" style="margin-bottom:16px;">매체별 인기도</div>
+          <div class="bar-row"><div class="bar-label">네이버</div><div class="bar-track"><div class="bar-fill" style="width:85%"></div></div><div class="bar-val">85%</div></div>
+          <div class="bar-row"><div class="bar-label">Meta</div><div class="bar-track"><div class="bar-fill" style="width:78%;background:var(--sky)"></div></div><div class="bar-val">78%</div></div>
+          <div class="bar-row"><div class="bar-label">Google</div><div class="bar-track"><div class="bar-fill" style="width:70%"></div></div><div class="bar-val">70%</div></div>
+          <div class="bar-row"><div class="bar-label">TikTok</div><div class="bar-track"><div class="bar-fill" style="width:55%;background:var(--sky)"></div></div><div class="bar-val">55%</div></div>
+          <div class="bar-row"><div class="bar-label">카카오</div><div class="bar-track"><div class="bar-fill" style="width:42%"></div></div><div class="bar-val">42%</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="margin-bottom:16px;">요일별 평균 참여율</div>
+          <div class="bar-row"><div class="bar-label">월요일</div><div class="bar-track"><div class="bar-fill" style="width:55%"></div></div><div class="bar-val">3.8%</div></div>
+          <div class="bar-row"><div class="bar-label">화요일</div><div class="bar-track"><div class="bar-fill" style="width:68%;background:var(--sky)"></div></div><div class="bar-val">4.5%</div></div>
+          <div class="bar-row"><div class="bar-label">수요일</div><div class="bar-track"><div class="bar-fill" style="width:78%"></div></div><div class="bar-val">5.1%</div></div>
+          <div class="bar-row"><div class="bar-label">목요일</div><div class="bar-track"><div class="bar-fill" style="width:72%;background:var(--sky)"></div></div><div class="bar-val">4.7%</div></div>
+          <div class="bar-row"><div class="bar-label">금요일</div><div class="bar-track"><div class="bar-fill" style="width:60%"></div></div><div class="bar-val">4.0%</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- 연동 설정 -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <div class="page" id="page-settings">
+      <div class="settings-grid">
+
+        <div class="card">
+          <div class="card-title" style="margin-bottom:16px;">Instagram 연동</div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div>
+              <label class="field-label">Instagram Business Account ID</label>
+              <input class="field-input" id="ig-account-id" placeholder="17841400000000000">
+            </div>
+            <div>
+              <label class="field-label">Graph API Access Token</label>
+              <input type="password" class="field-input" id="ig-token" placeholder="EAABs...">
+            </div>
+            <div>
+              <label class="field-label">자동 발행 시간</label>
+              <input type="time" class="field-input" value="12:00" id="publish-time">
+            </div>
+            <div>
+              <label class="field-label">기본 해시태그</label>
+              <input class="field-input" id="hashtags" value="#마케터의점심 #광고트렌드 #디지털마케팅 #퍼포먼스마케팅">
+            </div>
+            <button class="btn btn-orange" style="width:100%;font-size:12px;" onclick="saveSettings()">
+              저장 및 연결 테스트
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title" style="margin-bottom:16px;">크롤링 소스 관리</div>
+          <div style="display:flex;flex-direction:column;gap:8px;" id="source-toggles">
+            <div class="toggle-wrap">
+              <div class="toggle-info"><div class="toggle-name">네이버 광고</div><div class="toggle-url">ads.naver.com/notice</div></div>
+              <div class="toggle-track on" onclick="toggleSource(this)"><div class="toggle-knob"></div></div>
+            </div>
+            <div class="toggle-wrap">
+              <div class="toggle-info"><div class="toggle-name">Meta for Business</div><div class="toggle-url">developers.facebook.com/blog</div></div>
+              <div class="toggle-track on" onclick="toggleSource(this)"><div class="toggle-knob"></div></div>
+            </div>
+            <div class="toggle-wrap">
+              <div class="toggle-info"><div class="toggle-name">Google Ads</div><div class="toggle-url">ads.google.com/articles</div></div>
+              <div class="toggle-track on" onclick="toggleSource(this)"><div class="toggle-knob"></div></div>
+            </div>
+            <div class="toggle-wrap">
+              <div class="toggle-info"><div class="toggle-name">TikTok for Business</div><div class="toggle-url">ads.tiktok.com/blog</div></div>
+              <div class="toggle-track" onclick="toggleSource(this)"><div class="toggle-knob"></div></div>
+            </div>
+            <div class="toggle-wrap">
+              <div class="toggle-info"><div class="toggle-name">카카오 비즈니스</div><div class="toggle-url">kakaobusiness.gitbook.io</div></div>
+              <div class="toggle-track" onclick="toggleSource(this)"><div class="toggle-knob"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title" style="margin-bottom:12px;">Make.com 웹훅 URL</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.7;">
+            Make에서 Gemini 결과를 아래 URL로 POST 요청하면 자동으로 카드뉴스를 생성하고 Instagram에 발행합니다.
+          </div>
+          <div class="code-block" id="webhook-url">https://your-project.vercel.app/api/publish</div>
+          <button class="btn" style="margin-top:10px;font-size:11px;" onclick="copyWebhook()">URL 복사</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title" style="margin-bottom:12px;">Vercel 환경변수</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.7;">
+            Vercel 대시보드 → Settings → Environment Variables에 아래 키 추가
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div class="code-block">IG_ACCOUNT_ID = 계정ID</div>
+            <div class="code-block">IG_ACCESS_TOKEN = 토큰값</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- 토스트 -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── 상태 ────────────────────────────────────────────────────
+const VERCEL_BASE = window.location.origin;
+let currentCard = null;
+let queueItems = [];
+
+// ── 네비게이션 ───────────────────────────────────────────────
+const PAGE_TITLES = {
+  home: '대시보드', crawl: '크롤링 피드', create: '카드뉴스 생성',
+  editor: '에디터', queue: '발행 큐', analytics: '성과 분석', settings: '연동 설정'
+};
+
+function nav(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelector(`.nav-item[data-page="${id}"]`).classList.add('active');
+  document.getElementById('page-title').textContent = PAGE_TITLES[id] || id;
+}
+
+document.querySelectorAll('.nav-item[data-page]').forEach(el => {
+  el.addEventListener('click', () => nav(el.dataset.page));
+});
+
+// ── 탭 전환 ──────────────────────────────────────────────────
+function switchTab(tab, targetId) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  ['tab-crawl-based', 'tab-free-idea', 'tab-digest'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = id === targetId ? 'block' : 'none';
+  });
+}
+
+// ── 칩 토글 ──────────────────────────────────────────────────
+function toggleChip(el) { el.classList.toggle('on'); }
+
+// ── 크롤링 피드에서 생성 ──────────────────────────────────────
+function genFromFeed(title, source) {
+  nav('create');
+  document.querySelector('.tab').click(); // 첫 번째 탭
+  generateCard('crawl', title, source);
+}
+
+// ── 크롤 아이템 선택 ─────────────────────────────────────────
+function selectCrawlItem(el) {
+  const items = el.closest('#crawl-pick-list').querySelectorAll('.feed-item');
+  items.forEach(i => {
+    i.style.background = '';
+    i.style.borderLeft = '';
+    i.querySelector('div[style*="border-radius:50%"]').style.background = '';
+  });
+  el.style.background = 'rgba(255,107,0,0.06)';
+  el.style.borderLeft = '3px solid var(--orange)';
+  el.querySelector('div[style*="border-radius:50%"]').style.background = 'var(--orange)';
+}
+
+// ── AI 카드뉴스 생성 ─────────────────────────────────────────
+async function generateCard(mode, forceTopic, forceSource) {
+  const loadMap  = { crawl: 'load-crawl', free: 'load-free', digest: 'load-digest' };
+  const resultMap = { crawl: 'result-crawl', free: 'result-free', digest: 'result-digest' };
+  const fillEl = document.getElementById(loadMap[mode]);
+  const resultEl = document.getElementById(resultMap[mode]);
+  if (!fillEl || !resultEl) return;
+
+  // 로딩 애니메이션
+  fillEl.style.width = '0%';
+  resultEl.innerHTML = `
+    <div style="margin-top:14px;">
+      <div class="skeleton-line" style="width:60%;margin-bottom:8px;"></div>
+      <div class="skeleton-line" style="width:90%;margin-bottom:6px;"></div>
+      <div class="skeleton-line" style="width:75%;margin-bottom:6px;"></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:10px;">AI가 카드뉴스를 생성하고 있습니다...</div>
+    </div>`;
+
+  animateLoad(fillEl, async () => {
+    try {
+      let prompt = '';
+
+      if (mode === 'crawl' || forceTopic) {
+        const topic = forceTopic ||
+          document.querySelector('#crawl-pick-list .feed-item[style*="rgba(255,107,0"]')?.querySelector('.feed-title')?.textContent ||
+          '네이버 성과형 디스플레이 광고 노출 지면 확대 안내';
+        const extra = document.getElementById('crawl-extra')?.value || '';
+        prompt = buildPrompt('single', topic, extra);
+      } else if (mode === 'free') {
+        const idea = document.getElementById('free-idea-prompt')?.value || '';
+        prompt = buildPrompt('free', idea, '');
+      } else if (mode === 'digest') {
+        prompt = buildPrompt('digest', '', '');
+      }
+
+      const response = await fetch(`${VERCEL_BASE}/api/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
+      });
+
+      if (!response.ok) throw new Error(`서버 오류 ${response.status}`);
+      const data = await response.json();
+      const text = (data.content || []).map(b => b.text || '').join('').replace(/```json|```/g, '').trim();
+      const parsed = JSON.parse(text);
+      currentCard = parsed;
+
+      fillEl.style.width = '100%';
+      renderResult(parsed, resultEl, mode);
+      updateSidePreview(parsed);
+
+    } catch (e) {
+      fillEl.style.width = '0%';
+      resultEl.innerHTML = `
+        <div style="margin-top:14px;padding:12px;background:rgba(239,68,68,0.08);border-radius:8px;border-left:3px solid #EF4444;">
+          <div style="font-size:12px;color:#FCA5A5;margin-bottom:6px;">생성 오류</div>
+          <div style="font-size:11px;color:var(--muted);">${e.message}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:6px;">
+            Vercel 배포 후 <code style="color:var(--sky);">/api/generate</code> 엔드포인트가 필요합니다.
+          </div>
+        </div>`;
+    }
+  });
+}
+
+function buildPrompt(type, topic, extra) {
+  const brand = `브랜드: 마케터의 점심 | 배경:#0F172A 오렌지:#FF6B00 스카이블루:#38BDF8 | 전문적이지만 쉽게, 실무 마케터 관점`;
+  if (type === 'single' || type === 'free') {
+    return `${brand}\n\n주제: ${topic}\n${extra ? '추가 지시: ' + extra : ''}\n\n인스타그램 카드뉴스 5장 생성. JSON만 반환. 마크다운 코드블록 금지.\n{"label":"AD UPDATE","title":"제목","slides":[{"num":1,"type":"cover","headline":"제목","body":"리드"},{"num":2,"type":"point","label":"POINT 01","headline":"핵심","body":"설명","tip":"팁"},...],"caption":"캡션","hashtags":["#마케터의점심"]}`;
+  }
+  return `${brand}\n\n이번 주 주요 광고 매체(네이버, Meta, Google) 업데이트를 통합한 주간 다이제스트 카드뉴스. JSON만 반환. 마크다운 코드블록 금지.\n{"label":"WEEKLY DIGEST","title":"이번 주 광고계 핵심 업데이트","slides":[{"num":1,"type":"cover","headline":"이번 주\\n광고계 핵심 업데이트","body":"마케터 필독 소식"},...],"caption":"캡션","hashtags":["#마케터의점심","#주간광고뉴스"]}`;
+}
+
+function renderResult(parsed, el, mode) {
+  if (!parsed || !parsed.slides) {
+    el.innerHTML = '<div style="margin-top:14px;font-size:12px;color:var(--muted);">결과를 파싱할 수 없습니다.</div>';
+    return;
+  }
+  el.innerHTML = `
+    <div class="result-card">
+      <div class="result-source-tag">${parsed.label || 'CARD NEWS'}</div>
+      <div class="result-title">${parsed.title || ''}</div>
+      ${parsed.slides.slice(0, 3).map((s, i) => `
+        <div class="result-slide">
+          <div class="result-slide-num">슬라이드 ${i + 1}</div>
+          <div class="result-slide-text"><strong style="color:var(--light);">${s.headline || ''}</strong><br>${s.body || ''}</div>
+        </div>`).join('')}
+      ${parsed.slides.length > 3 ? `<div style="font-size:11px;color:var(--muted);padding:6px 0;">+ ${parsed.slides.length - 3}장 더...</div>` : ''}
+      <div class="result-caption">${(parsed.caption || '') + ' ' + (parsed.hashtags || []).join(' ')}</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px;">
+      <button class="btn" style="flex:1;font-size:12px;" onclick="nav('editor')">에디터에서 편집</button>
+      <button class="btn btn-orange" style="flex:1;font-size:12px;" onclick="addToQueue()">큐에 예약</button>
+    </div>`;
+}
+
+function updateSidePreview(parsed) {
+  if (!parsed?.slides?.[0]) return;
+  const s = parsed.slides[0];
+  document.getElementById('cp-label').textContent  = parsed.label || 'AD UPDATE';
+  document.getElementById('cp-headline').innerHTML = (s.headline || '').replace(/\n/g, '<br>');
+  document.getElementById('cp-body').textContent   = s.body || '';
+  document.getElementById('cp-num').textContent    = `01 / 0${parsed.slides.length}`;
+  const dots = document.getElementById('cp-dots');
+  dots.innerHTML = parsed.slides.map((_, i) =>
+    `<div class="sdot${i === 0 ? ' active' : ''}"></div>`
+  ).join('');
+}
+
+// ── 크롤링 피드 생성 결과 ─────────────────────────────────────
+function genFromFeedResult(title, source) {
+  const el = document.getElementById('crawl-gen-result');
+  if (el) el.innerHTML = '';
+  nav('create');
+  setTimeout(() => generateCard('crawl', title, source), 100);
+}
+
+// ── 큐 추가 ──────────────────────────────────────────────────
+function addToQueue() {
+  const date = document.getElementById('sched-date')?.value || '미정';
+  const time = document.getElementById('sched-time')?.value || '12:00';
+  showToast(`발행 큐에 추가되었습니다 — ${date} ${time}`);
+  setTimeout(() => nav('queue'), 600);
+}
+
+// ── 즉시 발행 ────────────────────────────────────────────────
+async function publishNow() {
+  if (!currentCard) { showToast('먼저 카드뉴스를 생성해주세요.'); return; }
+  showToast('Instagram 발행 중...');
+  try {
+    const res = await fetch(`${VERCEL_BASE}/api/publish`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p1: currentCard.title, p2: currentCard.slides?.map(s => s.headline) || [], p3: [currentCard.caption || ''] })
+    });
+    const data = await res.json();
+    if (data.success) showToast(`✓ 발행 완료! Post ID: ${data.instagramPostId}`);
+    else showToast(`발행 실패: ${data.error}`);
+  } catch (e) { showToast(`오류: ${e.message}`); }
+}
+
+// ── 에디터 ───────────────────────────────────────────────────
+function selectThumb(el, n) {
+  document.querySelectorAll('.slide-thumb').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+function setSlideColor(color, el) {
+  document.getElementById('ed-slide').style.background = color;
+  document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ── 설정 ─────────────────────────────────────────────────────
+function saveSettings() {
+  const id    = document.getElementById('ig-account-id')?.value;
+  const token = document.getElementById('ig-token')?.value;
+  if (id)    localStorage.setItem('ig_account_id', id);
+  if (token) localStorage.setItem('ig_access_token', token);
+  showToast('설정이 저장되었습니다.');
+}
+function toggleSource(el) { el.classList.toggle('on'); }
+function copyWebhook() {
+  const url = document.getElementById('webhook-url')?.textContent;
+  navigator.clipboard.writeText(url).then(() => showToast('URL이 복사되었습니다.'));
+}
+
+// ── 로딩 애니메이션 ──────────────────────────────────────────
+function animateLoad(el, cb) {
+  let p = 0;
+  const iv = setInterval(() => {
+    p = Math.min(p + Math.random() * 12, 88);
+    el.style.width = p + '%';
+    if (p >= 88) { clearInterval(iv); cb(); }
+  }, 220);
+}
+
+// ── 토스트 ───────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ── 초기 로딩 (스켈레톤 → 샘플 데이터) ──────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  // 저장된 설정 복원
+  const savedId    = localStorage.getItem('ig_account_id');
+  const savedToken = localStorage.getItem('ig_access_token');
+  if (savedId && document.getElementById('ig-account-id'))
+    document.getElementById('ig-account-id').value = savedId;
+  if (savedToken && document.getElementById('ig-token'))
+    document.getElementById('ig-token').value = savedToken;
+
+  // 웹훅 URL 업데이트
+  const wh = document.getElementById('webhook-url');
+  if (wh) wh.textContent = `${window.location.origin}/api/publish`;
+
+  // 오늘 날짜 기본값
+  const today = new Date().toISOString().split('T')[0];
+  const dateEl = document.getElementById('sched-date');
+  if (dateEl) dateEl.value = today;
+
+  // 스켈레톤 → 샘플 피드
+  setTimeout(() => {
+    document.getElementById('stat-published').textContent = '17';
+    document.getElementById('stat-queued').textContent    = '4';
+    document.getElementById('stat-crawled').textContent   = '12';
+    document.getElementById('stat-ai').textContent        = '31';
+
+    document.getElementById('home-feed').innerHTML = `
+      <div class="feed-item" onclick="nav('crawl')">
+        <div class="feed-icon" style="background:#03C75A;color:#fff;">N</div>
+        <div class="feed-info">
+          <div class="feed-source">네이버 · 오늘</div>
+          <div class="feed-title">성과형 디스플레이 광고 노출 지면 확대 안내</div>
+        </div>
+        <div class="badge badge-new">NEW</div>
+      </div>
+      <div class="feed-item" onclick="nav('crawl')">
+        <div class="feed-icon" style="background:#1877F2;color:#fff;font-size:11px;">f</div>
+        <div class="feed-info">
+          <div class="feed-source">Meta · 어제</div>
+          <div class="feed-title">Advantage+ 쇼핑 동영상 자동 테스트 기능 출시</div>
+        </div>
+        <div class="badge badge-hot">HOT</div>
+      </div>
+      <div class="feed-item" onclick="nav('crawl')">
+        <div class="feed-icon" style="background:#4285F4;color:#fff;font-size:11px;">G</div>
+        <div class="feed-info">
+          <div class="feed-source">Google · 오늘</div>
+          <div class="feed-title">PMax 검색 주제 타겟팅 한국 정식 출시</div>
+        </div>
+        <div class="badge badge-new">NEW</div>
+      </div>`;
+
+    document.getElementById('home-queue').innerHTML = `
+      <div style="padding:14px;background:var(--navy);border-radius:var(--radius-sm);border:1px solid rgba(255,255,255,0.06);">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:10px;color:var(--muted);">오늘 12:00</span>
+          <span class="status-pill sp-ready">발행 준비</span>
+        </div>
+        <div style="font-size:12px;font-weight:500;color:var(--light);margin-bottom:6px;">네이버 성과형 디스플레이 지면 확대</div>
+        <span class="tag tag-orange">네이버</span>
+      </div>
+      <div style="padding:14px;background:var(--navy);border-radius:var(--radius-sm);border:1px solid rgba(255,255,255,0.06);">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:10px;color:var(--muted);">내일 12:00</span>
+          <span class="status-pill sp-ready">발행 준비</span>
+        </div>
+        <div style="font-size:12px;font-weight:500;color:var(--light);margin-bottom:6px;">Google PMax 타겟팅 한국 출시</div>
+        <span class="tag tag-sky">Google</span>
+      </div>
+      <div style="padding:14px;background:var(--navy);border-radius:var(--radius-sm);border:1px solid rgba(255,255,255,0.06);">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:10px;color:var(--muted);">3/19 12:00</span>
+          <span class="status-pill sp-draft">검토 필요</span>
+        </div>
+        <div style="font-size:12px;font-weight:500;color:var(--light);margin-bottom:6px;">주간 다이제스트</div>
+        <span class="tag tag-gray">멀티 매체</span>
+      </div>`;
+  }, 600);
+});
+</script>
+</body>
+</html>
