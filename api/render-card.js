@@ -6,13 +6,11 @@ export default async function handler(req) {
   try {
     const { searchParams } = new URL(req.url);
     const raw = searchParams.get('data');
-    if (!raw) {
-      return new Response('data 파라미터가 없습니다.', { status: 400 });
-    }
+    if (!raw) return new Response('data 파라미터가 없습니다.', { status: 400 });
 
     const { p1, p2, p3, slideIndex = 0 } = JSON.parse(decodeURIComponent(raw));
     const slides = buildSlides(p1, p2, p3);
-    const slide = slides[Math.min(slideIndex, slides.length - 1)];
+    const slide  = slides[Math.min(slideIndex, slides.length - 1)];
 
     return new ImageResponse(
       renderSlide(slide, slideIndex, slides.length),
@@ -23,8 +21,6 @@ export default async function handler(req) {
   }
 }
 
-// ── 슬라이드 구성 ──────────────────────────────────────────
-// cover 1장 + p2 항목마다 1장 + action 1장
 function buildSlides(p1, p2, p3) {
   return [
     { type: 'cover',  text: p1 },
@@ -33,7 +29,6 @@ function buildSlides(p1, p2, p3) {
   ];
 }
 
-// ── 공통 색상 ─────────────────────────────────────────────
 const C = {
   bg:     '#0F172A',
   bg2:    '#1E293B',
@@ -43,65 +38,47 @@ const C = {
   muted:  '#64748B',
 };
 
-// ── 이모지·특수문자 제거 (satori 호환) ────────────────────
 function clean(text = '') {
-  return text
-    .replace(/[\u{1F000}-\u{1FFFF}]/gu, '')
-    .replace(/[✔✅💡🚨⚠️❗]/g, '')
-    .trim();
+  return text.replace(/[\u{1F000}-\u{1FFFF}]/gu, '').replace(/[✔✅💡🚨⚠️❗]/g, '').trim();
 }
 
-// ── 슬라이드 렌더 ──────────────────────────────────────────
 function renderSlide(slide, idx, total) {
-  const today = new Date().toLocaleDateString('ko-KR');
+  const today  = new Date().toLocaleDateString('ko-KR');
   const pageNum = `${idx + 1} / ${total}`;
 
-  const brandBar = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    marginBottom: 'auto',
-  };
-
-  const footerStyle = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    width: '100%',
-    paddingTop: '24px',
-    borderTop: `1px solid ${C.muted}44`,
-    marginTop: 'auto',
+  const footer = {
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+    width: '100%', paddingTop: '24px',
+    borderTop: `1px solid ${C.muted}44`, marginTop: 'auto',
   };
 
   const wrap = (children) => ({
     type: 'div',
     props: {
       style: {
-        display: 'flex',
-        flexDirection: 'column',
-        width: '100%',
-        height: '100%',
-        background: C.bg,
-        padding: '64px',
-        fontFamily: 'sans-serif',
+        display: 'flex', flexDirection: 'column',
+        width: '100%', height: '100%',
+        background: C.bg, padding: '64px', fontFamily: 'sans-serif',
       },
       children,
     },
   });
 
-  // ── 커버 슬라이드 ────────────────────────────────────────
+  const brandBar = {
+    type: 'div',
+    props: {
+      style: { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: 'auto' },
+      children: [
+        { type: 'div', props: { style: { width: '8px', height: '8px', borderRadius: '4px', background: C.orange } } },
+        { type: 'span', props: { style: { color: C.muted, fontSize: '18px', letterSpacing: '0.1em' }, children: '마케터의 점심' } },
+      ],
+    },
+  };
+
+  // ── 커버 ──────────────────────────────────────────────────
   if (slide.type === 'cover') {
     return wrap([
-      {
-        type: 'div',
-        props: {
-          style: brandBar,
-          children: [
-            { type: 'div', props: { style: { width: '8px', height: '8px', borderRadius: '4px', background: C.orange } } },
-            { type: 'span', props: { style: { color: C.muted, fontSize: '18px', letterSpacing: '0.1em' }, children: '마케터의 점심' } },
-          ],
-        },
-      },
+      brandBar,
       {
         type: 'div',
         props: {
@@ -122,7 +99,7 @@ function renderSlide(slide, idx, total) {
             {
               type: 'div',
               props: {
-                style: { color: '#fff', fontSize: '48px', fontWeight: '700', lineHeight: '1.35', maxWidth: '900px' },
+                style: { color: '#fff', fontSize: '52px', fontWeight: '700', lineHeight: '1.35', maxWidth: '900px' },
                 children: clean(slide.text),
               },
             },
@@ -132,7 +109,7 @@ function renderSlide(slide, idx, total) {
       {
         type: 'div',
         props: {
-          style: footerStyle,
+          style: footer,
           children: [
             { type: 'span', props: { style: { color: C.muted, fontSize: '16px' }, children: today } },
             { type: 'span', props: { style: { color: C.muted, fontSize: '16px' }, children: pageNum } },
@@ -142,19 +119,10 @@ function renderSlide(slide, idx, total) {
     ]);
   }
 
-  // ── 포인트 슬라이드 ──────────────────────────────────────
+  // ── 포인트 ────────────────────────────────────────────────
   if (slide.type === 'point') {
     return wrap([
-      {
-        type: 'div',
-        props: {
-          style: brandBar,
-          children: [
-            { type: 'div', props: { style: { width: '8px', height: '8px', borderRadius: '4px', background: C.orange } } },
-            { type: 'span', props: { style: { color: C.muted, fontSize: '18px', letterSpacing: '0.1em' }, children: '마케터의 점심' } },
-          ],
-        },
-      },
+      brandBar,
       {
         type: 'div',
         props: {
@@ -192,7 +160,7 @@ function renderSlide(slide, idx, total) {
       {
         type: 'div',
         props: {
-          style: footerStyle,
+          style: footer,
           children: [
             { type: 'span', props: { style: { color: C.muted, fontSize: '16px' }, children: today } },
             { type: 'span', props: { style: { color: C.muted, fontSize: '16px' }, children: pageNum } },
@@ -202,7 +170,7 @@ function renderSlide(slide, idx, total) {
     ]);
   }
 
-  // ── 액션 팁 슬라이드 ────────────────────────────────────
+  // ── 액션 팁 ──────────────────────────────────────────────
   if (slide.type === 'action') {
     const tips = (slide.items || []).slice(0, 3);
     return wrap([
@@ -263,7 +231,7 @@ function renderSlide(slide, idx, total) {
       {
         type: 'div',
         props: {
-          style: footerStyle,
+          style: footer,
           children: [
             { type: 'span', props: { style: { color: C.sky, fontSize: '16px', fontWeight: '600' }, children: '#마케터의점심' } },
             { type: 'span', props: { style: { color: C.muted, fontSize: '16px' }, children: pageNum } },

@@ -1,25 +1,16 @@
 {
+  "version": 2,
+  "buildCommand": "",
+  "outputDirectory": "public",
   "functions": {
     "api/publish.js": {
       "maxDuration": 60
+    },
+    "api/generate.js": {
+      "maxDuration": 30
+    },
+    "api/render-card.js": {
+      "maxDuration": 10
     }
   }
 }
-```
-
----
-
-### 3. `.env.local` (로컬 테스트용 — `.gitignore`에 반드시 포함)
-```
-IG_ACCOUNT_ID=여기에_인스타그램_계정_ID
-IG_ACCESS_TOKEN=여기에_액세스_토큰
-```
-
----
-
-### 4. `.gitignore`
-```
-.env.local
-.env
-node_modules/
-.vercel/
