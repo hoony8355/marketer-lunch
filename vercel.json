@@ -6,6 +6,9 @@
     "api/publish.js": {
       "maxDuration": 60
     },
+    "api/naver-notices.js": {
+      "maxDuration": 30
+    },
     "api/generate.js": {
       "maxDuration": 30
     },
